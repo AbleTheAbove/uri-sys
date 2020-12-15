@@ -1,4 +1,5 @@
 use std::env;
+use std::process::Command;
 
 #[derive(Debug)]
 struct URI {
@@ -11,6 +12,30 @@ struct URI {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    let uri = uri_parser(args);
+
+    match &uri.host[..] {
+        "execute" => {
+            if uri.path != "" {
+                let mut command = Command::new(&uri.path);
+                command.status().expect("process failed to execute");
+            } else {
+                println!("No command provided");
+            }
+        }
+        _ => {}
+    }
+}
+
+fn uri_parser(args: Vec<String>) -> URI {
+    let uri = URI {
+        scheme: "".to_string(),
+        host: "".to_string(),
+        path: "".to_string(),
+        query: "".to_string(),
+        fragment: "".to_string(),
+    };
+
     if args.len() != 1 {
         let uri_ref: Vec<&str> = args[1].split("://").collect();
         if uri_ref.len() == 2 {
@@ -27,7 +52,7 @@ fn main() {
                             query: query_ref[0].to_string(),
                             fragment: query_ref[1].to_string(),
                         };
-                        println!("{:#?}", uri);
+                        uri
                     } else {
                         let uri = URI {
                             scheme: uri_ref[0].to_string(),
@@ -36,7 +61,7 @@ fn main() {
                             query: query_ref[0].to_string(),
                             fragment: "".to_string(),
                         };
-                        println!("{:#?}", uri);
+                        uri
                     }
                 } else {
                     let uri = URI {
@@ -46,7 +71,7 @@ fn main() {
                         query: "".to_string(),
                         fragment: "".to_string(),
                     };
-                    println!("{:#?}", uri);
+                    uri
                 }
             } else {
                 let uri = URI {
@@ -56,12 +81,14 @@ fn main() {
                     query: "".to_string(),
                     fragment: "".to_string(),
                 };
-                println!("{:#?}", uri);
+                uri
             }
         } else {
             println!("Malformed Universal Resource Indicator");
+            uri
         }
     } else {
         println!("No Universal Resource Indicator provided");
+        uri
     }
 }
